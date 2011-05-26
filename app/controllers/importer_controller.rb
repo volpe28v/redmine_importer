@@ -9,7 +9,7 @@ class ImporterController < ApplicationController
   before_filter :find_project
   before_filter :authorize,:except => :result
 
-  ISSUE_ATTRS = [:id, :subject, :assigned_to, :fixed_version,
+  ISSUE_ATTRS = [:id, :subject, :parent_issue, :assigned_to, :fixed_version,
     :author, :description, :category, :priority, :tracker, :status,
     :start_date, :due_date, :done_ratio, :estimated_hours]
   
@@ -219,6 +219,7 @@ class ImporterController < ApplicationController
       issue.subject = row[attrs_map["subject"]] || issue.subject
       
       # optional attributes
+      issue.parent_issue_id = row[attrs_map["parent_issue"]] || issue.parent_issue_id
       issue.description = row[attrs_map["description"]] || issue.description
       issue.category_id = category != nil ? category.id : issue.category_id
       issue.start_date = row[attrs_map["start_date"]] || issue.start_date
