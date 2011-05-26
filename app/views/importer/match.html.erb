@@ -14,7 +14,7 @@
 	<fieldset class="box"><legend><%= l(:label_match_select) %></legend>
 	<% @headers.each do |column| %>
 		 <label class="tabular"><%= column %>:
-		 <%= select_tag "fields_map[#{column}]", "<option value=\"\">#{l(:option_ignore)}</option>" + options_for_select( @attrs, selected_value=column ) %></label>
+		 <%= select_tag "fields_map[#{column}]", "<option value=\"\">#{l(:option_ignore)}</option>" + options_for_select( @attrs, @attrs.find(proc {[nil,nil]}){|a|column == a[0]}[1] ) %></label>
 	<% end %>
 	</fieldset>
 	
