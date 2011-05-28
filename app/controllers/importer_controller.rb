@@ -219,7 +219,7 @@ class ImporterController < ApplicationController
       issue.subject = row[attrs_map["subject"]] || issue.subject
       
       # optional attributes
-      issue.parent_issue_id = row[attrs_map["parent_issue"]] || issue.parent_issue_id
+      issue.parent_issue_id = find_parent_issue_id(row[attrs_map["WBS"]]) || row[attrs_map["parent_issue"]] || issue.parent_issue_id
       issue.description = row[attrs_map["description"]] || issue.description
       issue.category_id = category != nil ? category.id : issue.category_id
       issue.start_date = row[attrs_map["start_date"]] || issue.start_date
@@ -280,5 +280,16 @@ private
     nkf_option ? NKF.nkf('-m0 -x ' + nkf_option, file.read) : file.read 
   end
 
+  def find_parent_issue_id(wbs)
+    return nil unless wbs
+    parent_wbs = wbs.gsub(/\.[0-9]+$/, "")
+    field_wbs = CustomField.find_by_name('WBS')
+
+    parent_wbs_values = CustomValue.find(:all, :include => "custom_field", :conditions => ["custom_field_id = ? and value = ?", field_wbs.id, parent_wbs])
+    parent_wbs_value = parent_wbs_values.detect{|wbs_value|
+      Issue.find(:first, :conditions => {:id => wbs_value.customized_id, :project_id => @project.id})
+    }
+    parent_wbs_value.customized_id if parent_wbs_value
+  end
 
 end
