@@ -136,7 +136,6 @@ class ImporterController < ApplicationController
       priority = Enumeration.find_by_name(row[attrs_map["priority"]])
       category = IssueCategory.find_by_name(row[attrs_map["category"]])
       assigned_to = User.find_by_login(row[attrs_map["assigned_to"]])
-      fixed_version = Version.find_by_name(row[attrs_map["fixed_version"]])
   
       # new issue or find exists one
       issue = Issue.new
@@ -144,6 +143,7 @@ class ImporterController < ApplicationController
       issue.project_id = project != nil ? project.id : @project.id
       issue.tracker_id = tracker != nil ? tracker.id : default_tracker
       issue.author_id = author != nil ? author.id : User.current.id
+      fixed_version = Version.find_by_name_and_project_id(row[attrs_map["fixed_version"]], issue.project_id)
 
       if update_issue
         # custom field
