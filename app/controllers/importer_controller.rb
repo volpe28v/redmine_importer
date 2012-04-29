@@ -1,34 +1,33 @@
 # -*- coding: utf-8 -*-
-require 'fastercsv'
 require 'tempfile'
 require 'nkf'
 
 class ImporterController < ApplicationController
   unloadable
-  
+
   before_filter :find_project
   before_filter :authorize,:except => :result
 
   ISSUE_ATTRS = [:id, :subject, :parent_issue, :assigned_to, :fixed_version,
     :author, :description, :category, :priority, :tracker, :status,
     :start_date, :due_date, :done_ratio, :estimated_hours]
-  
+
   def index
   end
 
   def match
-    # params 
+    # params
     file = params[:file]
     splitter = params[:splitter]
     wrapper = params[:wrapper]
     encoding = params[:encoding]
 
-    if file == nil 
+    if file == nil
       flash[:error] = l(:label_file_undefined);
       redirect_to :action => "index", :project_id => params[:project_id]
       return
     end
-    
+
     # save import file
     @original_filename = file.original_filename
     tmpfile = Tempfile.new("redmine_importer")
@@ -44,20 +43,20 @@ class ImporterController < ApplicationController
       flash[:error] = "Cannot save import file."
       return
     end
-    
+
     session[:importer_tmpfile] = tmpfilename
     session[:importer_splitter] = splitter
     session[:importer_wrapper] = wrapper
     session[:importer_encoding] = encoding
-    
+
     # display sample
     sample_count = 5
     i = 0
     @samples = []
-    
-    FasterCSV.foreach(tmpfile.path, {:headers=>true, :encoding=>"UTF-8", :quote_char=>wrapper, :col_sep=>splitter}) do |row|
+
+    CSV.foreach(tmpfile.path, {:headers=>true, :encoding=>"UTF-8", :quote_char=>wrapper, :col_sep=>splitter}) do |row|
       @samples[i] = row
-      
+
       i += 1
       if i >= sample_count
         break
@@ -116,18 +115,18 @@ class ImporterController < ApplicationController
       flash[:error] = "Unique field hasn't match an issue's field"
       return
     end
-    
+
     @handle_count = 0
     @update_count = 0
     @skip_count = 0
     @failed_count = 0
     @failed_issues = Hash.new
     @affect_projects_issues = Hash.new
-    
+
     # attrs_map is fields_map's invert
     attrs_map = fields_map.invert
-      
-    FasterCSV.foreach(tmpfile.path, {:headers=>true, :encoding=>'UTF-8', :quote_char=>wrapper, :col_sep=>splitter}) do |row|
+
+    CSV.foreach(tmpfile.path, {:headers=>true, :encoding=>'UTF-8', :quote_char=>wrapper, :col_sep=>splitter}) do |row|
 
       project = Project.find_by_name(row[attrs_map["project"]])
       tracker = Tracker.find_by_name(row[attrs_map["tracker"]])
